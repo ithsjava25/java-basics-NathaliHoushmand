@@ -32,9 +32,8 @@ public class Main {
     public static void main(String[] args) {
         ElpriserAPI elpriserAPI = new ElpriserAPI();
 
-        String zone = null;
+        String zone = "SE3";
         LocalDate date = LocalDate.now();
-        boolean sorted = false;
         int chargingHours = 0;
         boolean showHelp = false;
 
@@ -45,9 +44,6 @@ public class Main {
                     break;
                 case "--date":
                     if (i + 1 <args.length) date =LocalDate.parse(args[++i]);
-                    break;
-                case "--sorted":
-                    sorted = true;
                     break;
                 case "--charging":
                     if (i + 1 < args.length){
@@ -74,7 +70,7 @@ public class Main {
         //Commit #3 - Hämta och analysera priser från API
         //---
         
-        List<PricePoint> prices = elpriserAPI.getPrices(zone, date);
+        List<PricePoint> prices = getPrices(zone, date, elpriserAPI);
 
         if (prices == null || prices.isEmpty()) {
             System.out.println("No price data available for " + date + " in zone" + zone);
@@ -102,7 +98,7 @@ public class Main {
             int bestStart = 0;
 
             for (int i = 0; i <= prices.size() - chargingHours; i++) {
-                double sun = 0;
+                double sum = 0;
                 for (int j = i; j < i + chargingHours; j++) {
                     sum += prices.get(j).price();                    
                 }
@@ -123,6 +119,23 @@ public class Main {
 
 
     }
+
+    private static List<PricePoint> getPrices(String zone, LocalDate date, ElpriserAPI api) {
+        ElpriserAPI.Prisklass prisklass = ElpriserAPI.Prisklass.valueOf(zone);
+
+        List<ElpriserAPI.Elpris> apiPrices = api.getPriser(date, prisklass);
+
+        List<PricePoint> prices = new ArrayList<>();
+        for (var elpris : apiPrices) {
+            prices.add(new PricePoint(elpris.timeStart().toLocalDateTime(), elpris.sekPerKWh()));
+
+        }
+
+        return prices;
+        
+    }
+
+
 
     //Commit #3 - printHelp metod implementerad då det inte funkar ovan utan
      

@@ -10,6 +10,25 @@ import java.util.*;
 //Commit #1
 // CLI och bas fixat
 public class Main {
+    static class PricePoint{
+        LocalDateTime time;
+        double price;
+
+            PricePoint(LocalDateTime time, double price) {
+                this.time = time;
+                this.price = price;
+            }
+
+            String getHourString() {
+                int hour = time.getHour();
+                int next = (hour + 1) % 24;
+                return String.format("%02d-%02d", hour, next);
+            }
+
+            double price() {
+                return price;
+            }
+    }
     public static void main(String[] args) {
         ElpriserAPI elpriserAPI = new ElpriserAPI();
 
@@ -77,16 +96,29 @@ public class Main {
         System.out.printf("Billigast timme: %s %.2f öre%n", min.getHourString(), min.price());
         System.out.printf("Dyrast timme: %s %.2f öre%n", max.getHourString(), max.price());
 
-        //Commit#5
+        //Commit#5 - charging window tillagd
         if (chargingHours > 0) {
             double lowestSum = Double.MAX_VALUE;
             int bestStart = 0;
+
             for (int i = 0; i <= prices.size() - chargingHours; i++) {
-                
+                double sun = 0;
+                for (int j = i; j < i + chargingHours; j++) {
+                    sum += prices.get(j).price();                    
+                }
+                if (sum< lowestSum){
+                    lowestSum = sum;
+                    bestStart = i;
+                }
         }
 
+        System.out.println("Optimalt laddfönster (" + chargingHours + "h):");
+        for (int k = bestStart; k < bestStart + chargingHours; k++) {
+            PricePoint p = prices.get(k);
+            System.out.printf("%s %.2f öre%n", p.getHourString(), p.price());
+        }
 
-
+    }
 
 
 
